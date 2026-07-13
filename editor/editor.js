@@ -2,7 +2,7 @@
 import { newStage, toggleFloor, toggleLit, placeObject, removeObjectAt, objectAt,
          isFloor, serialize, deserialize } from './core.js';
 import { validateStage } from '../maps/validate.js';
-import { localMaps, saveLocalMap, loadLocalMap, encodeShare } from '../maps/store.js';
+import { localMaps, saveLocalMap, loadLocalMap, encodeShare, serverMaps } from '../maps/store.js';
 import { STAGE1 } from '../maps/stage1.js';
 import { STAGE2 } from '../maps/stage2.js';
 import { STAGE3 } from '../maps/stage3.js';
@@ -173,10 +173,10 @@ function buildPanel() {
   const loadSel = el('select');
   loadSel.append(el('option', { value: '', textContent: '— 불러오기 —' }));
   for (const t of Object.keys(TEMPLATES)) loadSel.append(el('option', { value: 'tpl:' + t, textContent: `템플릿: ${t}` }));
-  fetch('/api/maps').then(r => r.json()).catch(() => []).then(names => {
+  serverMaps().then(names => {
     const server = new Set(names || []);
     for (const n of server) loadSel.append(el('option', { value: 'map:' + n, textContent: `커스텀: ${n}` }));
-    // 서버가 없는 웹 공개판: 브라우저(localStorage)에 저장된 맵
+    // 브라우저(localStorage)에 저장된 맵 — 서버 없는 웹 공개판 저장분
     for (const n of localMaps()) {
       if (!server.has(n)) loadSel.append(el('option', { value: 'loc:' + n, textContent: `브라우저: ${n}` }));
     }

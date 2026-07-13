@@ -13,6 +13,19 @@ export function localMaps(ls) {
   return Object.keys(readAll(ls)).sort();
 }
 
+// 서버 저장 맵 목록 — 개발 서버(/api/maps) 우선, 정적 호스팅에선 커밋된 index.json
+export async function serverMaps() {
+  try {
+    const r = await fetch('/api/maps');
+    if (r.ok) return await r.json();
+  } catch { /* 정적 호스팅 */ }
+  try {
+    const r = await fetch('maps/custom/index.json?t=' + Date.now());
+    if (r.ok) return await r.json();
+  } catch { /* 목록 파일 없음 */ }
+  return [];
+}
+
 export function saveLocalMap(name, data, ls) {
   const all = readAll(ls);
   all[name] = data;
