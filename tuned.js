@@ -15,7 +15,7 @@ export const TUNED = {
   "vision0": 3.5,
   "vision1": 2.5,
   "vision2": 1,
-  "fogAlpha": 0.9,
+  "fogAlpha": 1,
   "shPatrolSpeed": 1.5,
   "shChaseSpeed": 3,
   "shDashSpeed": 6,

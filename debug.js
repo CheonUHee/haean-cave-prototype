@@ -1,4 +1,5 @@
 import { CFG } from './config.js';
+import { localMaps } from './maps/store.js';
 
 // [key, 라벨, min, max, step] — 'h'는 섹션 헤더
 const SLIDERS = [
@@ -89,11 +90,19 @@ export function buildPanel(panel, actions) {
   const customSel = document.createElement('select');
   customSel.appendChild(Object.assign(document.createElement('option'),
     { value: '', textContent: '커스텀 맵…' }));
-  fetch('/api/maps').then(r => r.json()).then(names => {
-    for (const n of names) {
+  fetch('/api/maps').then(r => r.json()).catch(() => []).then(names => {
+    const server = new Set(names || []);
+    for (const n of server) {
       customSel.appendChild(Object.assign(document.createElement('option'), { value: n, textContent: n }));
     }
-  }).catch(() => {});
+    // 서버 없는 웹 공개판: 브라우저(localStorage)에 저장된 맵
+    for (const n of localMaps()) {
+      if (!server.has(n)) {
+        customSel.appendChild(Object.assign(document.createElement('option'),
+          { value: n, textContent: `${n} (브라우저)` }));
+      }
+    }
+  });
   customSel.onchange = () => { if (customSel.value) actions.setCustomStage(customSel.value); };
   panel.appendChild(customSel);
   const editBtn = document.createElement('button');

@@ -3,6 +3,8 @@ import { STAGE1 } from './maps/stage1.js';
 import { STAGE2 } from './maps/stage2.js';
 import { STAGE3 } from './maps/stage3.js';
 import { makeWorld, retrace, isSafeAt, inSafeZone, fireTriggers } from './objects.js';
+import { loadLocalMap, decodeShare } from './maps/store.js';
+import { validateStage } from './maps/validate.js';
 import { placeMirror, canRotate, rotateMirrorToward } from './mirrors.js';
 import { makePlayer, tryDodge, updatePlayer } from './player.js';
 import { makeDarkness, stepDarkness } from './darkness.js';
@@ -166,11 +168,14 @@ function loadStage(n, data) {
   toast(typeof n === 'number' ? `${n}단계 시작` : `커스텀 맵 '${n}' 시작`);
 }
 
-// 에디터가 저장한 커스텀 맵(JSON 데이터 테이블) 로드
+// 에디터가 저장한 커스텀 맵 로드 — 서버 파일(정본) 우선, 없으면 브라우저 저장분(웹 공개판)
 async function loadCustomStage(name) {
-  const res = await fetch(`maps/custom/${encodeURIComponent(name)}.json?t=${Date.now()}`);
-  if (!res.ok) { toast(`맵 로드 실패: ${name}`); return; }
-  loadStage(name, await res.json());
+  const res = await fetch(`maps/custom/${encodeURIComponent(name)}.json?t=${Date.now()}`)
+    .catch(() => null);
+  if (res && res.ok) { loadStage(name, await res.json()); return; }
+  const local = loadLocalMap(name);
+  if (local) { loadStage(name, local); return; }
+  toast(`맵 로드 실패: ${name}`);
 }
 
 function restart() { loadStage(stageId, customDef); }
@@ -257,11 +262,19 @@ buildPanel(document.getElementById('panel'), {
   setCustomStage: loadCustomStage,
 });
 
-// URL ?stage=2 (기본 단계) 또는 ?stage=<커스텀맵이름> — 에디터 '저장 후 플레이' 연결
+// URL 진입점: #map=<공유 링크 데이터> > ?stage=<기본 단계|커스텀맵 이름>
 {
+  const share = location.hash.match(/^#map=(.+)$/);
   const param = new URLSearchParams(location.search).get('stage');
-  if (param && STAGES[param]) loadStage(Number(param));
-  else if (param) loadCustomStage(param);
+  if (share) {
+    const data = decodeShare(share[1]);
+    if (data && validateStage(data).errors.length === 0) loadStage('공유 맵', data);
+    else toast('공유 링크가 손상되었거나 잘못된 맵입니다');
+  } else if (param && STAGES[param]) {
+    loadStage(Number(param));
+  } else if (param) {
+    loadCustomStage(param);
+  }
 }
 requestAnimationFrame(frame);
 

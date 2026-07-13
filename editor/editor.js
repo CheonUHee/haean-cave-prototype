@@ -2,6 +2,7 @@
 import { newStage, toggleFloor, toggleLit, placeObject, removeObjectAt, objectAt,
          isFloor, serialize, deserialize } from './core.js';
 import { validateStage } from '../maps/validate.js';
+import { localMaps, saveLocalMap, loadLocalMap, encodeShare } from '../maps/store.js';
 import { STAGE1 } from '../maps/stage1.js';
 import { STAGE2 } from '../maps/stage2.js';
 import { STAGE3 } from '../maps/stage3.js';
@@ -33,6 +34,7 @@ let pickingCells = null;      // enterCell 편집 중인 트리거
 let dragPaint = null;         // 'add' | 'remove'
 let mapName = 'custom1';
 let cleanSnap = '';           // 마지막 저장/로드 시점의 직렬화 상태 (미저장 변경 감지)
+let saveNote = '';            // 마지막 저장 결과 안내 (검증 결과 아래 표시)
 
 const markClean = () => { cleanSnap = serialize(stage); };
 const isDirty = () => serialize(stage) !== cleanSnap;
@@ -171,15 +173,24 @@ function buildPanel() {
   const loadSel = el('select');
   loadSel.append(el('option', { value: '', textContent: '— 불러오기 —' }));
   for (const t of Object.keys(TEMPLATES)) loadSel.append(el('option', { value: 'tpl:' + t, textContent: `템플릿: ${t}` }));
-  fetch('/api/maps').then(r => r.json()).then(names => {
-    for (const n of names) loadSel.append(el('option', { value: 'map:' + n, textContent: `커스텀: ${n}` }));
-  }).catch(() => {});
+  fetch('/api/maps').then(r => r.json()).catch(() => []).then(names => {
+    const server = new Set(names || []);
+    for (const n of server) loadSel.append(el('option', { value: 'map:' + n, textContent: `커스텀: ${n}` }));
+    // 서버가 없는 웹 공개판: 브라우저(localStorage)에 저장된 맵
+    for (const n of localMaps()) {
+      if (!server.has(n)) loadSel.append(el('option', { value: 'loc:' + n, textContent: `브라우저: ${n}` }));
+    }
+  });
   loadSel.onchange = async () => {
     const v = loadSel.value;
     if (!v) return;
     if (!confirmDiscard()) { loadSel.value = ''; return; }
     if (v.startsWith('tpl:')) stage = deserialize(TEMPLATES[v.slice(4)]);
-    else {
+    else if (v.startsWith('loc:')) {
+      const name = v.slice(4);
+      stage = deserialize(loadLocalMap(name));
+      mapName = name;
+    } else {
       const name = v.slice(4);
       stage = deserialize(await (await fetch(`maps/custom/${name}.json?t=${Date.now()}`)).json());
       mapName = name;
@@ -217,7 +228,23 @@ function buildPanel() {
     if (!confirmDiscard()) return;
     location.href = './index.html';
   };
-  panel.append(el('div', {}, saveBtn, playBtn, newBtn, backBtn));
+  // 공유 링크: 맵 데이터를 URL에 담는다 — 서버 없이 누구에게나 전달 가능
+  const shareBtn = el('button', { textContent: '공유 링크 복사' });
+  shareBtn.onclick = async () => {
+    const r = validateNow();
+    if (r.errors.length) { alert('검증 오류를 먼저 해결하세요:\n' + r.errors.join('\n')); return; }
+    const url = new URL('./index.html', location.href).href +
+                '#map=' + encodeShare(JSON.parse(serialize(stage)));
+    try {
+      await navigator.clipboard.writeText(url);
+      shareBtn.textContent = '복사됨 ✓ — 붙여넣어 전달하세요';
+    } catch {
+      prompt('아래 링크를 직접 복사하세요', url);
+      shareBtn.textContent = '공유 링크 복사';
+    }
+    setTimeout(() => { shareBtn.textContent = '공유 링크 복사'; }, 2000);
+  };
+  panel.append(el('div', {}, saveBtn, playBtn, newBtn, backBtn, shareBtn));
   panel.append(el('div', { id: 'report' }));
 
   panel.append(el('h3', { textContent: '도구' }));
@@ -379,6 +406,7 @@ function validateNow() {
   for (const e of r.errors) report.append(el('div', { className: 'err', textContent: '✖ ' + e }));
   for (const wn of r.warnings) report.append(el('div', { className: 'warn', textContent: '△ ' + wn }));
   if (r.errors.length === 0) report.append(el('div', { className: 'ok', textContent: '✔ 검증 통과 — 저장 가능' }));
+  if (saveNote) report.append(el('div', { className: 'ok', textContent: saveNote }));
   return r;
 }
 
@@ -386,11 +414,18 @@ async function save(andPlay) {
   if (!mapName) { alert('맵 이름을 입력하세요'); return; }
   const r = validateNow();
   if (r.errors.length) { alert('검증 오류를 먼저 해결하세요:\n' + r.errors.join('\n')); return; }
+  const data = JSON.parse(serialize(stage));
   const res = await fetch('/api/save-map', {
     method: 'POST',
-    body: JSON.stringify({ name: mapName, data: JSON.parse(serialize(stage)) }),
+    body: JSON.stringify({ name: mapName, data }),
   }).catch(() => null);
-  if (!res || !res.ok) { alert('저장 실패 — 서버(실행.bat)가 켜져 있는지 확인'); return; }
+  if (res && res.ok) {
+    saveNote = `✔ 서버에 저장됨: maps/custom/${mapName}.json`;
+  } else {
+    // 서버 없는 웹 공개판 → 브라우저(localStorage) 저장으로 대체
+    if (!saveLocalMap(mapName, data)) { alert('저장 실패 — 브라우저 저장 공간을 확인하세요'); return; }
+    saveNote = `✔ 브라우저에 저장됨 (이 기기 전용): ${mapName}`;
+  }
   markClean();
   if (andPlay) location.href = `./index.html?stage=${encodeURIComponent(mapName)}`;
   else buildPanel();
