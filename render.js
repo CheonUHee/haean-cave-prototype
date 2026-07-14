@@ -147,7 +147,13 @@ export function draw(ctx, state) {
     ctx.beginPath(); ctx.arc(px(sh.x), px(sh.y), px(rad), 0, 7); ctx.fill();
   }
 
-  // ── HUD ──
+  // ── HUD·토스트: 대형 맵에서 캔버스가 CSS로 축소되어도 화면상 크기 유지 ──
+  // 캔버스 픽셀폭 / 실제 표시폭 = 축소 배율. 그만큼 확대해 그리면 화면 크기가 일정하다.
+  const rect = ctx.canvas.getBoundingClientRect ? ctx.canvas.getBoundingClientRect() : null;
+  const ui = rect && rect.width > 0 ? ctx.canvas.width / rect.width : 1;
+  const uiW = ctx.canvas.width / ui;             // 확대 좌표계에서의 화면 폭
+  ctx.save();
+  ctx.scale(ui, ui);
   drawHud(ctx, state);
   // 토스트
   let ty = 30;
@@ -155,13 +161,14 @@ export function draw(ctx, state) {
   for (const t of toasts) {
     ctx.fillStyle = 'rgba(20,20,34,0.85)';
     const wd = ctx.measureText(t.text).width + 20;
-    ctx.fillRect(ctx.canvas.width / 2 - wd / 2, ty - 18, wd, 26);
+    ctx.fillRect(uiW / 2 - wd / 2, ty - 18, wd, 26);
     ctx.fillStyle = '#ffe9a8';
     ctx.textAlign = 'center';
-    ctx.fillText(t.text, ctx.canvas.width / 2, ty);
+    ctx.fillText(t.text, uiW / 2, ty);
     ctx.textAlign = 'left';
     ty += 32;
   }
+  ctx.restore();
   // 게임오버/클리어 오버레이
   if (gameState === 'over' || gameState === 'clear') {
     ctx.fillStyle = 'rgba(8,8,16,0.72)';

@@ -21,11 +21,12 @@ const TOOL_GROUPS = [
   ['타일', [['floor', '바닥'], ['lit', '밝은 칸']]],
   ['오브젝트', [['source', '광원'], ['waypoint', '중간지점'], ['goal', '목표'],
               ['stand', '거치대'], ['lock', '방향고정'], ['aux', '보조'],
-              ['item', '유실물'], ['spawn', '스폰']]],
+              ['item', '유실물'], ['spawn', '그림자']]],
   ['편집', [['select', '선택'], ['erase', '지우개']]],
 ];
 const KIND_LABEL = { source: '광원', waypoint: '중간지점', goal: '목표', stand: '거울 거치대',
-                     lock: '방향 고정 거치대', aux: '보조 거치대', item: '유실물', spawn: '스폰 트리거' };
+                     lock: '방향 고정 거치대', aux: '보조 거치대', item: '유실물',
+                     spawn: '그림자 스폰 지점' };
 
 let stage = newStage(13, 9);
 let tool = 'floor';
@@ -201,16 +202,17 @@ function buildPanel() {
   };
   panel.append(row('열기', loadSel));
 
-  const colsIn = el('input', { type: 'number', min: 1, max: 40, value: stage.cols });
+  // 입력 순서는 일반 관례대로 행×열 — 내부 데이터(cols/rows)는 그대로
   const rowsIn = el('input', { type: 'number', min: 1, max: 30, value: stage.rows });
+  const colsIn = el('input', { type: 'number', min: 1, max: 40, value: stage.cols });
   const sizeBtn = el('button', { textContent: '크기 적용' });
   sizeBtn.onclick = () => {
-    stage.cols = Math.max(1, colsIn.value | 0);
     stage.rows = Math.max(1, rowsIn.value | 0);
+    stage.cols = Math.max(1, colsIn.value | 0);
     stage.cells = stage.cells.filter(([c, r]) => c < stage.cols && r < stage.rows);
     refresh(true);
   };
-  panel.append(row('크기 (열×행)', colsIn, rowsIn, sizeBtn));
+  panel.append(row('크기 (행×열)', rowsIn, colsIn, sizeBtn));
 
   const saveBtn = el('button', { textContent: '저장' });
   saveBtn.onclick = () => save(false);
