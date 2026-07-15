@@ -170,17 +170,27 @@ export function draw(ctx, state) {
     ty += 32;
   }
   ctx.restore();
-  // 게임오버/클리어 오버레이 — 딤은 전체 캔버스, 문구는 HUD처럼 화면 고정 크기
+  // 게임오버/클리어 오버레이 — 딤은 전체 캔버스, 문구는 HUD처럼 화면 고정 크기.
+  // 단, 화면 폭(uiW)보다 긴 문구는 폭에 맞춰 폰트를 축소(fit) — 좁은 맵(1단계)·
+  // 대형 축소 맵에서 양옆이 잘리지 않게 한다.
   if (gameState === 'over' || gameState === 'clear') {
     ctx.fillStyle = 'rgba(8,8,16,0.72)';
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     ctx.save();
     ctx.scale(ui, ui);
+    const maxW = uiW * 0.94;
+    const fitFont = (text, base, weight = '') => {
+      ctx.font = `${weight}${base}px sans-serif`;
+      const w = ctx.measureText(text).width;
+      if (w > maxW) ctx.font = `${weight}${Math.max(12, Math.floor(base * maxW / w))}px sans-serif`;
+    };
+    const title = gameState === 'over' ? '게임 오버 — R 키로 마지막 저장 지점부터' : '클리어!';
+    ctx.textAlign = 'center';
     ctx.fillStyle = gameState === 'over' ? '#ff6f8f' : '#8fe98f';
-    ctx.font = 'bold 42px sans-serif'; ctx.textAlign = 'center';
-    ctx.fillText(gameState === 'over' ? '게임 오버 — R 키로 마지막 저장 지점부터' : '클리어!',
-                 uiW / 2, uiH / 2 - 10);
-    ctx.font = '16px sans-serif'; ctx.fillStyle = '#ddd';
+    fitFont(title, 42, 'bold ');
+    ctx.fillText(title, uiW / 2, uiH / 2 - 10);
+    ctx.fillStyle = '#ddd';
+    fitFont(statsText, 16);
     ctx.fillText(statsText, uiW / 2, uiH / 2 + 28);
     ctx.textAlign = 'left';
     ctx.restore();
