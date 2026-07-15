@@ -19,13 +19,13 @@ const LOCK_PRESETS = [
 // 도구는 성격별 3그룹: 타일 칠하기 / 오브젝트 배치 / 편집(배치와 다른 성격 — 버튼 색도 구분)
 const TOOL_GROUPS = [
   ['타일', [['floor', '바닥'], ['lit', '밝은 칸']]],
-  ['오브젝트', [['source', '광원'], ['waypoint', '중간지점'], ['goal', '목표'],
-              ['stand', '거치대'], ['lock', '방향고정'], ['aux', '보조'],
+  ['오브젝트', [['source', '광원'], ['waypoint', '중간지점'], ['goal', '목표지점'],
+              ['stand', '거울거치대'], ['lock', '방향고정'], ['aux', '보조거치대'],
               ['item', '유실물'], ['spawn', '그림자']]],
   ['편집', [['select', '선택'], ['erase', '지우개']]],
 ];
-const KIND_LABEL = { source: '광원', waypoint: '중간지점', goal: '목표', stand: '거울 거치대',
-                     lock: '방향 고정 거치대', aux: '보조 거치대', item: '유실물',
+const KIND_LABEL = { source: '광원', waypoint: '중간지점', goal: '목표지점', stand: '거울거치대',
+                     lock: '방향 고정 거치대', aux: '보조거치대', item: '유실물',
                      spawn: '그림자 스폰 지점' };
 
 let stage = newStage(13, 9);
@@ -202,17 +202,20 @@ function buildPanel() {
   };
   panel.append(row('열기', loadSel));
 
-  // 입력 순서는 일반 관례대로 행×열 — 내부 데이터(cols/rows)는 그대로
-  const rowsIn = el('input', { type: 'number', min: 1, max: 30, value: stage.rows });
-  const colsIn = el('input', { type: 'number', min: 1, max: 40, value: stage.cols });
+  // 입력 순서는 일반 관례대로 행×열 — 내부 데이터(cols/rows)는 그대로. 최대 20×20.
+  const MAX = 20;
+  const clamp = (v) => Math.min(MAX, Math.max(1, v | 0));
+  const rowsIn = el('input', { type: 'number', min: 1, max: MAX, value: stage.rows });
+  const colsIn = el('input', { type: 'number', min: 1, max: MAX, value: stage.cols });
   const sizeBtn = el('button', { textContent: '크기 적용' });
   sizeBtn.onclick = () => {
-    stage.rows = Math.max(1, rowsIn.value | 0);
-    stage.cols = Math.max(1, colsIn.value | 0);
+    // 직접 입력이 max를 넘겨도 클램프 (number 필드 max는 스피너만 강제)
+    stage.rows = clamp(rowsIn.value);
+    stage.cols = clamp(colsIn.value);
     stage.cells = stage.cells.filter(([c, r]) => c < stage.cols && r < stage.rows);
     refresh(true);
   };
-  panel.append(row('크기 (행×열)', rowsIn, colsIn, sizeBtn));
+  panel.append(row('크기 (행×열, 최대 20)', rowsIn, colsIn, sizeBtn));
 
   const saveBtn = el('button', { textContent: '저장' });
   saveBtn.onclick = () => save(false);
@@ -253,7 +256,7 @@ function buildPanel() {
   const toolsDiv = el('div', { id: 'tools' });
   for (const [group, defs] of TOOL_GROUPS) {
     toolsDiv.append(el('div', { className: 'tool-group', textContent: group }));
-    const rowDiv = el('div');
+    const rowDiv = el('div', { className: 'tool-row' });   // 3열 그리드 (오브젝트 = 3·3·2)
     for (const [id, label] of defs) {
       const b = el('button', {
         textContent: label,

@@ -152,6 +152,7 @@ export function draw(ctx, state) {
   const rect = ctx.canvas.getBoundingClientRect ? ctx.canvas.getBoundingClientRect() : null;
   const ui = rect && rect.width > 0 ? ctx.canvas.width / rect.width : 1;
   const uiW = ctx.canvas.width / ui;             // 확대 좌표계에서의 화면 폭
+  const uiH = ctx.canvas.height / ui;            // 확대 좌표계에서의 화면 높이
   ctx.save();
   ctx.scale(ui, ui);
   drawHud(ctx, state);
@@ -169,17 +170,20 @@ export function draw(ctx, state) {
     ty += 32;
   }
   ctx.restore();
-  // 게임오버/클리어 오버레이
+  // 게임오버/클리어 오버레이 — 딤은 전체 캔버스, 문구는 HUD처럼 화면 고정 크기
   if (gameState === 'over' || gameState === 'clear') {
     ctx.fillStyle = 'rgba(8,8,16,0.72)';
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.save();
+    ctx.scale(ui, ui);
     ctx.fillStyle = gameState === 'over' ? '#ff6f8f' : '#8fe98f';
     ctx.font = 'bold 42px sans-serif'; ctx.textAlign = 'center';
     ctx.fillText(gameState === 'over' ? '게임 오버 — R 키로 마지막 저장 지점부터' : '클리어!',
-                 ctx.canvas.width / 2, ctx.canvas.height / 2 - 10);
+                 uiW / 2, uiH / 2 - 10);
     ctx.font = '16px sans-serif'; ctx.fillStyle = '#ddd';
-    ctx.fillText(statsText, ctx.canvas.width / 2, ctx.canvas.height / 2 + 28);
+    ctx.fillText(statsText, uiW / 2, uiH / 2 + 28);
     ctx.textAlign = 'left';
+    ctx.restore();
   }
 }
 
