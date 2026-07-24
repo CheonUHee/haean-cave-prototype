@@ -6,7 +6,8 @@
 <style>
   * { box-sizing: border-box; margin: 0; }
   body { background:#141420; color:#ddd; font:13px/1.5 system-ui, sans-serif;
-         display:flex; gap:10px; padding:10px; height:100vh; overflow:hidden; }
+         display:flex; flex-direction:column; gap:10px; padding:10px; height:100vh; overflow:hidden; }
+  #wrap { flex:1; display:flex; gap:10px; min-height:0; }
   #board { flex:1; overflow:auto; display:flex; align-items:flex-start; justify-content:center; }
   canvas { background:#1b1b2c; border-radius:6px; cursor:crosshair; }
   #panel { width:430px; overflow-y:auto; background:#1d1d30; border-radius:6px; padding:12px; flex-shrink:0; }
@@ -36,8 +37,11 @@
 </style>
 </head>
 <body>
-  <div id="board"><canvas id="canvas"></canvas></div>
-  <div id="panel"></div>
+  <div id="wrap">
+    <div id="board"><canvas id="canvas"></canvas></div>
+    <div id="panel"></div>
+  </div>
+  <script src="./shared/header.js" data-active="editor" defer></script>
   <script type="module" src="./editor/editor.js"></script>
 </body>
 </html>

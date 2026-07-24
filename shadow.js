@@ -43,7 +43,9 @@ export function seesPlayer(sh, px, py, playerSafe, cfg) {
 }
 
 // 1틱 갱신. 반환 { contact?:true, died?:true }
-export function updateShadow(sh, t, dt, w, player, playerSafe, cfg) {
+// rng: 데모가 시드 고정 난수를 넣어 같은 장면을 재현하게 하는 훅.
+// main.js는 넘기지 않으므로 게임은 기존과 동일하게 Math.random을 쓴다.
+export function updateShadow(sh, t, dt, w, player, playerSafe, cfg, rng = Math.random) {
   const ev = {};
   if (sh.dead) return ev;
 
@@ -120,9 +122,9 @@ export function updateShadow(sh, t, dt, w, player, playerSafe, cfg) {
     } else {
       sh.wanderT -= dt;
       if (sh.wanderT <= 0) {
-        const a = Math.random() * Math.PI * 2;
+        const a = rng() * Math.PI * 2;
         sh.wx = Math.cos(a); sh.wy = Math.sin(a);
-        sh.wanderT = 2 + Math.random() * 2;
+        sh.wanderT = 2 + rng() * 2;
       }
     }
     vx = sh.wx * cfg.shPatrolSpeed; vy = sh.wy * cfg.shPatrolSpeed;

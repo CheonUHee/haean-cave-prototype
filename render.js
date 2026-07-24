@@ -13,7 +13,7 @@ export function setupCanvas(canvas, stage) {
 const px = (m) => m * PPM;
 
 export function draw(ctx, state) {
-  const { w, player, darknessInfo, toasts, gameState, cfg, adjustStand, statsText } = state;
+  const { w, player, darknessInfo, toasts, gameState, cfg, adjustStand, statsText, hud } = state;
   const { stage } = w;
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
@@ -147,6 +147,26 @@ export function draw(ctx, state) {
     ctx.beginPath(); ctx.arc(px(sh.x), px(sh.y), px(rad), 0, 7); ctx.fill();
   }
 
+  // ── 시야 부채꼴 (안내 페이지 데모 전용) ──
+  // 그림자의 색적 범위를 독자에게 보여주기 위한 표시라 안개 위에 그린다.
+  // (showDebug의 콘은 개발용이라 안개 아래 그대로 두고, 이쪽은 별도 경로다)
+  if (state.sightCones) {
+    for (const sh of w.shadows) {
+      if (sh.dead || !(sh.state === 'patrol' || sh.state === 'chase')) continue;
+      const a0 = Math.atan2(sh.fy, sh.fx);
+      const half = (cfg.shSightHalfAngle * Math.PI) / 180;
+      ctx.beginPath();
+      ctx.moveTo(px(sh.x), px(sh.y));
+      ctx.arc(px(sh.x), px(sh.y), px(cfg.shSightRange), a0 - half, a0 + half);
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(150,225,255,0.13)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(150,225,255,0.45)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+  }
+
   // ── HUD·토스트: 대형 맵에서 캔버스가 CSS로 축소되어도 화면상 크기 유지 ──
   // 캔버스 픽셀폭 / 실제 표시폭 = 축소 배율. 그만큼 확대해 그리면 화면 크기가 일정하다.
   const rect = ctx.canvas.getBoundingClientRect ? ctx.canvas.getBoundingClientRect() : null;
@@ -155,19 +175,22 @@ export function draw(ctx, state) {
   const uiH = ctx.canvas.height / ui;            // 확대 좌표계에서의 화면 높이
   ctx.save();
   ctx.scale(ui, ui);
-  drawHud(ctx, state);
-  // 토스트
-  let ty = 30;
-  ctx.font = '14px sans-serif';
-  for (const t of toasts) {
-    ctx.fillStyle = 'rgba(20,20,34,0.85)';
-    const wd = ctx.measureText(t.text).width + 20;
-    ctx.fillRect(uiW / 2 - wd / 2, ty - 18, wd, 26);
-    ctx.fillStyle = '#ffe9a8';
-    ctx.textAlign = 'center';
-    ctx.fillText(t.text, uiW / 2, ty);
-    ctx.textAlign = 'left';
-    ty += 32;
+  // hud:false — 안내 페이지 미니 데모용. 작은 캔버스에서 HUD·토스트가 화면을 덮는 것을 막는다.
+  if (hud !== false) {
+    drawHud(ctx, state);
+    // 토스트
+    let ty = 30;
+    ctx.font = '14px sans-serif';
+    for (const t of toasts) {
+      ctx.fillStyle = 'rgba(20,20,34,0.85)';
+      const wd = ctx.measureText(t.text).width + 20;
+      ctx.fillRect(uiW / 2 - wd / 2, ty - 18, wd, 26);
+      ctx.fillStyle = '#ffe9a8';
+      ctx.textAlign = 'center';
+      ctx.fillText(t.text, uiW / 2, ty);
+      ctx.textAlign = 'left';
+      ty += 32;
+    }
   }
   ctx.restore();
   // 게임오버/클리어 오버레이 — 딤은 전체 캔버스, 문구는 HUD처럼 화면 고정 크기.
@@ -197,7 +220,10 @@ export function draw(ctx, state) {
   }
 }
 
-let fogCanvas = null;   // 오프스크린 안개 레이어 (재사용)
+// 오프스크린 안개 레이어 (캔버스별 재사용) — 안내 페이지처럼 크기가 다른 데모 캔버스
+// 여러 개가 동시에 draw()를 돌릴 때, 단일 전역이면 매 프레임 캔버스가 재생성돼
+// 할당 churn이 생긴다. ctx.canvas를 키로 캐시해 캔버스별로 하나씩만 유지한다.
+const fogCanvases = new WeakMap();
 
 function drawFog(ctx, state) {
   const { w, player, darknessInfo, cfg } = state;
@@ -205,10 +231,12 @@ function drawFog(ctx, state) {
   // 안개는 오프스크린 캔버스에 그리고 거기서만 시야 원을 뚫는다.
   // (메인 캔버스에 직접 destination-out을 쓰면 바닥·빛·오브젝트까지 지워져
   //  플레이어 주변이 검게 보인다)
+  let fogCanvas = fogCanvases.get(ctx.canvas);
   if (!fogCanvas || fogCanvas.width !== ctx.canvas.width || fogCanvas.height !== ctx.canvas.height) {
     fogCanvas = document.createElement('canvas');
     fogCanvas.width = ctx.canvas.width;
     fogCanvas.height = ctx.canvas.height;
+    fogCanvases.set(ctx.canvas, fogCanvas);
   }
   const f = fogCanvas.getContext('2d');
   f.clearRect(0, 0, fogCanvas.width, fogCanvas.height);

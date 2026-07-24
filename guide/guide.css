@@ -1,0 +1,212 @@
+* { box-sizing: border-box; margin: 0; }
+body { background:#141420; color:#ddd; font:14px/1.7 system-ui, sans-serif;
+       min-height:100vh; display:flex; flex-direction:column; gap:10px; padding:10px; }
+main { width:100%; max-width:760px; margin:0 auto; display:flex; flex-direction:column; gap:28px; }
+
+.hero { position:relative; border-radius:10px; overflow:hidden; min-height:340px;
+        display:flex; align-items:flex-end; justify-content:center; }
+.hero-bg { position:absolute; inset:0; background:url('../assets/cave-enter.webp') center 55%/cover no-repeat; }
+.hero::after { content:''; position:absolute; inset:0; pointer-events:none;
+               background:linear-gradient(180deg, rgba(20,20,32,.25) 0%, rgba(20,20,32,.55) 45%,
+                                          rgba(20,20,32,.97) 100%); }
+.hero-fg { position:relative; z-index:1; text-align:center; padding:0 16px 26px; width:100%; }
+.hero h1 { color:#7ee0ee; font-size:38px; letter-spacing:10px; text-shadow:0 2px 16px #000; }
+.catch { color:#fff; font-size:17px; margin-top:10px; text-shadow:0 2px 10px #000; }
+.pc-badge { display:inline-block; background:rgba(20,20,32,.78); border:1px solid #556;
+            border-radius:6px; padding:6px 14px; margin-top:16px; color:#ffd257; font-size:13px; }
+
+.lead { display:flex; flex-direction:column; gap:10px; }
+/* 소개글은 히어로 아래 첫 화면이라 가운데 정렬로 둔다.
+   keep-all이 없으면 한국어가 글자 단위로 끊겨 마지막 글자만 다음 줄로 넘어간다 */
+.intro { color:#aab; max-width:620px; margin:0 auto; text-align:center; word-break:keep-all; }
+.intro.note { color:#8a86a8; font-size:13px; }
+
+/* 핵심 플레이 루프 — 게임에서 실제로 쓰는 색으로 강조해 화면과 연결시킨다 */
+.intro.loop { color:#eef; }
+.intro .c-src { color:#ffd257; }    /* 광원 */
+.intro .c-mir { color:#38c7dd; }    /* 거울 */
+.intro .c-sh { color:#a78bfa; }     /* 그림자 */
+.intro .c-goal { color:#6fdc6f; }   /* 목표 지점 */
+.cta { display:inline-block; background:#ffd257; color:#141420; font-weight:bold; border-radius:6px;
+       padding:10px 26px; margin-top:18px; text-decoration:none; }
+.cta:hover { filter:brightness(1.1); }
+.cta.sub { background:#2c2c4a; color:#7ee0ee; border:1px solid #7ee0ee; }
+
+.sec { background:#1d1d30; border-radius:8px; padding:20px; }
+.sec h2 { color:#7ee0ee; font-size:18px; margin-bottom:10px; }
+/* keep-all: 어절(공백) 단위로만 줄바꿈해 문장이 글자 중간에서 끊기지 않게 한다 */
+.sec > p { color:#aab; margin-bottom:12px; word-break:keep-all; }
+
+.demo-wrap { position:relative; background:#1b1b2c; border-radius:6px; padding:14px;
+             display:flex; flex-direction:column; align-items:center; gap:10px; }
+.demo-wrap canvas { max-width:100%; border-radius:4px; }
+.demo-keys { display:flex; align-items:flex-end; gap:10px; justify-content:center; }
+.kb-wasd { display:grid; grid-template-columns:repeat(3, auto); gap:3px; justify-items:center; }
+.kb-wasd .k-w { grid-column:2; }
+.kb-wasd .k-a { grid-column:1; grid-row:2; }
+.kb-wasd .k-s { grid-column:2; grid-row:2; }
+.kb-wasd .k-d { grid-column:3; grid-row:2; }
+.kb-etc { display:flex; gap:4px; align-items:flex-end; }
+.keycap { background:#2c2c4a; border:1px solid #555; border-bottom-width:3px; border-radius:4px;
+          padding:3px 10px; font-size:12px; color:#9ab; transition:all .08s; }
+.keycap.on { background:#7ee0ee; color:#141420; border-color:#7ee0ee; transform:translateY(2px); }
+.demo-cursor { position:absolute; font-size:18px; pointer-events:none; z-index:2;
+               transition:left .1s linear, top .1s linear; filter:drop-shadow(0 0 3px #000); }
+.demo-cursor.click { transform:scale(0.8); }
+.demo-spin { position:absolute; pointer-events:none; z-index:2;
+             filter:drop-shadow(0 0 4px #000); animation:spinPulse 1.2s ease-in-out infinite; }
+@keyframes spinPulse { 0%,100% { opacity:.6; } 50% { opacity:1; } }
+
+.demo-sliders { width:100%; max-width:420px; position:relative; }
+.demo-sliders label { display:flex; align-items:center; gap:8px; margin:4px 0; }
+.demo-sliders .k { flex:1; color:#9ab; }
+.demo-sliders .v { width:48px; text-align:right; color:#ffd257; font-variant-numeric:tabular-nums; }
+.demo-sliders input[type=range] { width:210px; pointer-events:none; }
+
+.demo-palette { display:flex; gap:6px; }
+.demo-palette button { background:#2c2c4a; color:#ddd; border:1px solid #444; border-radius:4px;
+                       padding:4px 12px; pointer-events:none; }
+.demo-palette button.on { background:#3d6ea5; border-color:#5b9bd5; }
+
+.keys-table { width:100%; border-collapse:collapse; font-size:13px; margin-top:12px; }
+.keys-table th, .keys-table td { border:1px solid #33334f; padding:7px 10px; text-align:left; }
+.keys-table th { color:#7ee0ee; background:#232338; }
+kbd { background:#2c2c4a; border:1px solid #555; border-radius:3px; padding:1px 6px;
+      margin:0 1px; font-size:12px; }
+
+/* 상태·속력이 한 줄로 표기되도록 */
+.shadow-table th:first-child, .shadow-table td:first-child { width:4.5em; word-break:keep-all; }
+.shadow-table th:nth-child(2), .shadow-table td:nth-child(2) { width:5.5em; white-space:nowrap; }
+
+.caution { background:#3a2c20; border:1px solid #ffd257; border-radius:6px; padding:12px 14px;
+           color:#ffe8a8; margin-top:14px; word-break:keep-all; }
+/* 파훼법 설명 안에 들어가는 축소판 주의 상자 */
+.caution.sm { padding:8px 10px; margin-top:8px; font-size:12px; }
+.flow { margin:10px 0 6px 20px; color:#aab; }
+.flow li { margin:4px 0; }
+
+.demo-fallback { display:none; color:#ff8f9f; }
+.demo-failed .demo-wrap { display:none; }
+.demo-failed .demo-grid { display:none; }
+.demo-failed .demo-fallback { display:block; }
+
+footer { text-align:center; color:#556; font-size:12px; padding:16px 0 6px; }
+
+/* 기획 요약 */
+.concept-row { display:flex; gap:14px; align-items:center; flex-wrap:wrap; }
+.concept-row > div { flex:1; min-width:260px; }
+.concept-row p { margin-bottom:8px; }
+.concept-art { width:280px; max-width:100%; border-radius:6px; }
+.gimmick { display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; }
+.gcard { flex:1; min-width:240px; background:#232338; border-radius:6px; padding:12px 14px; }
+.gtag { color:#ffd257; font-size:11px; font-weight:bold; letter-spacing:1px; }
+.gcard h3 { color:#7ee0ee; font-size:15px; margin:2px 0 6px; }
+.gcard h3 span { color:#8a86a8; font-size:12px; font-weight:normal; }
+
+/* 게임 규칙 */
+.rh { color:#7ee0ee; font-size:15px; margin:20px 0 8px; }
+.chars { display:flex; gap:10px; flex-wrap:wrap; }
+.chars figure { flex:1; min-width:150px; background:#232338; border-radius:6px; padding:10px;
+                text-align:center; margin:0; }
+/* 키 차이가 보이도록 실제 신장에 비례한 높이로, 바닥선을 맞춰 세운다 */
+.chars .fig-img { height:250px; display:flex; align-items:flex-end; justify-content:center; }
+.chars .fig-img img { max-width:100%; object-fit:contain; }
+.chars .c-skia .fig-img img { height:240px; }        /* 200cm */
+.chars .c-appraiser .fig-img img { height:216px; }   /* 180cm */
+.chars .c-sakiri .fig-img img { height:144px; }      /* 120cm */
+.chars figcaption { display:flex; flex-direction:column; gap:4px; margin-top:6px; font-size:12px; }
+.chars figcaption b { color:#eef; font-size:14px; }
+
+/* 키·속력 도식 — 눈금 하한(키 100cm · 속력 1.0m/s)에서 시작해 최대값을 100%로 둔 막대.
+   0부터 그리면 셋의 차이가 막대 끝에 몰려 잘 안 보인다 */
+.chars .stat { display:flex; align-items:center; gap:6px; white-space:nowrap; }
+.chars .stat .sk { color:#8a86a8; width:2.2em; text-align:left; }
+.chars .stat .bar { flex:1; height:7px; background:#141420; border-radius:4px; overflow:hidden; }
+.chars .stat .bar i { display:block; height:100%; background:#7ee0ee; border-radius:4px; }
+.chars .stat .bar.spd i { background:#ffd257; }
+.chars .stat .sv { color:#ffd257; font-variant-numeric:tabular-nums; width:4.6em; text-align:right; }
+.chars-legend { color:#8a86a8; font-size:12px; margin-top:8px; word-break:keep-all; }
+
+.obj-table { width:100%; border-collapse:collapse; font-size:13px; }
+.obj-table th, .obj-table td { border:1px solid #33334f; padding:8px 10px; text-align:left;
+                               vertical-align:middle; }
+.obj-table th { color:#7ee0ee; background:#232338; }
+
+/* 가장 긴 이름("보조 거울 거치대")이 한 줄에 들어가도록. keep-all로 단어 중간 줄바꿈도 막는다 */
+.obj-table th:first-child, .obj-table td:first-child { width:10em; word-break:keep-all; }
+
+.obj-table td:nth-child(2) { text-align:center; word-break:keep-all; white-space:nowrap; width:8em; }
+.obj-table td:nth-child(2) .mk { display:block; margin:0 auto 4px; }
+
+/* 한국어는 기본값에서 글자 단위로 끊겨 "…합니" / "다." 처럼 어절이 잘린다.
+   keep-all로 어절(공백) 단위 줄바꿈만 허용해 마지막 글자가 홀로 넘어가지 않게 한다 */
+.obj-table td:last-child { word-break:keep-all; }
+
+/* 게임 내 표기 마커 — 실제 렌더 색과 동일 */
+.mk { display:inline-block; vertical-align:middle; margin-right:4px; }
+.mk.diamond { width:14px; height:14px; background:var(--c); transform:rotate(45deg); }
+.mk.flag { width:0; height:0; border-left:14px solid var(--c);
+           border-top:7px solid transparent; border-bottom:7px solid transparent; }
+.mk.ring { width:13px; height:13px; border:2px solid var(--c); transform:rotate(45deg); }
+.mk.beam { width:26px; height:3px; background:rgba(255,230,120,.95);
+           box-shadow:0 0 0 4px rgba(255,220,90,.28); }
+/* 데모에 그려지는 그림자 시야 부채꼴(render.js sightCones)과 같은 색 */
+.mk.cone { width:0; height:0; border-left:13px solid rgba(150,225,255,.35);
+           border-top:7px solid transparent; border-bottom:7px solid transparent; }
+
+.how { background:#232338; border-left:3px solid #7ee0ee; border-radius:0 6px 6px 0;
+       padding:10px 14px; margin-top:10px; color:#cdd; font-size:13px; word-break:keep-all; }
+.how ul { margin:6px 0 0 18px; }
+.how li { margin:4px 0; }
+.small { color:#8a86a8; font-size:12px; margin-top:6px; }
+
+.how-body { margin:6px 0 0 18px; }
+.safe-example { margin-top:10px; text-align:center; }
+.safe-example svg { width:100%; max-width:360px; display:block; margin:0 auto; border-radius:4px; }
+.se-legend { display:flex; flex-wrap:wrap; gap:12px; margin-top:6px; font-size:12px; color:#9ab;
+             justify-content:center; }
+.se-legend > span { display:flex; align-items:center; gap:4px; }
+
+.demo-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.demo-cell { background:#1b1b2c; border-radius:6px; padding:10px; }
+.demo-cell .demo-wrap { background:transparent; padding:0; }
+.dc-title { color:#7ee0ee; font-weight:bold; font-size:13px; margin-top:8px; }
+.dc-desc { color:#9ab; font-size:12px; margin-top:2px; }
+@media (max-width: 560px) { .demo-grid { grid-template-columns:1fr; } }
+
+.credit { color:#445; font-size:11px; }
+
+/* 섹션 제목에 들어가는 게임 내 표기 마커 */
+.mk.cell { width:13px; height:13px; background:var(--c); border-radius:2px; }
+.mk.blob { width:14px; height:14px; border-radius:50%; background:#2a2338;
+           box-shadow:0 0 0 2px #a78bfa inset, 0 0 6px #a78bfa; }
+
+.dark-table th:nth-child(2), .dark-table td:nth-child(2) { width:56px; }
+
+/* 어둠 단계별 시야 시각화 — 캔버스가 아니라 정적 CSS 도형이다 */
+.dark-table td { vertical-align:middle; }
+.vis { display:block; width:40px; height:26px; border-radius:3px; background:#6a58d6; position:relative; }
+.vis::after { content:''; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+              border-radius:50%; background:#efe9d2; }
+.vis.v0::after { width:22px; height:22px; }
+.vis.v1::after { width:15px; height:15px; }
+.vis.v2::after { width:6px; height:6px; }
+.vis.v3 { background:#0a0a12; }
+.vis.v3::after { width:0; height:0; }
+
+/* 라이브 데모가 들어가는 자리 — 비어 있으면(초기화 실패 등) 자리를 차지하지 않는다 */
+.demo-slot { margin-top:10px; }
+.demo-slot:empty { display:none; }
+.demo-slot .demo-wrap { background:transparent; padding:0; }
+.demo-slot canvas { max-width:100%; height:auto; display:block; margin:0 auto; }
+.demo-slot.slot-sm canvas { max-width:200px; }
+.how-demos { margin:6px 0 0 18px; }
+.how-demos li { margin:10px 0; display:grid; grid-template-columns:1fr 210px; gap:12px;
+                align-items:center; }
+@media (max-width: 560px) { .how-demos li { grid-template-columns:1fr; } }
+
+.play-cta { text-align:center; margin-top:18px; }
+.play-cta .cta { margin-top:0; }
+.play-cta .caution { text-align:left; }
+
+.editor-cta { text-align:center; }

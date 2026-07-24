@@ -231,14 +231,14 @@ function buildPanel() {
   const backBtn = el('button', { textContent: '게임으로 이동 (저장 안 함)' });
   backBtn.onclick = () => {
     if (!confirmDiscard()) return;
-    location.href = './index.html';
+    location.href = './play.html';
   };
   // 공유 링크: 맵 데이터를 URL에 담는다 — 서버 없이 누구에게나 전달 가능
   const shareBtn = el('button', { textContent: '공유 링크 복사' });
   shareBtn.onclick = async () => {
     const r = validateNow();
     if (r.errors.length) { alert('검증 오류를 먼저 해결하세요:\n' + r.errors.join('\n')); return; }
-    const url = new URL('./index.html', location.href).href +
+    const url = new URL('./play.html', location.href).href +
                 '#map=' + encodeShare(JSON.parse(serialize(stage)));
     try {
       await navigator.clipboard.writeText(url);
@@ -432,7 +432,7 @@ async function save(andPlay) {
     saveNote = `✔ 브라우저에 저장됨 (이 기기 전용): ${mapName}`;
   }
   markClean();
-  if (andPlay) location.href = `./index.html?stage=${encodeURIComponent(mapName)}`;
+  if (andPlay) location.href = `./play.html?stage=${encodeURIComponent(mapName)}`;
   else buildPanel();
 }
 

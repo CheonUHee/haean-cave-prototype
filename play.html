@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>해안 동굴 — 프로토타입 (1~3단계)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  body { background:#141420; color:#ddd; font:13px/1.5 system-ui, sans-serif;
+         display:flex; flex-direction:column; gap:10px; padding:10px; height:100vh; overflow:hidden; }
+  #wrap { flex:1; display:flex; gap:10px; min-height:0; }
+  #game { flex:1; display:flex; align-items:center; justify-content:center; min-width:0; }
+  canvas { background:#1b1b2c; border-radius:6px; max-width:100%; max-height:100%; }
+  #panel { width:430px; overflow-y:auto; background:#1d1d30; border-radius:6px; padding:12px; flex-shrink:0; }
+  #panel h3 { color:#7ee0ee; font-size:13px; margin:12px 0 4px; }
+  #panel label { display:flex; align-items:center; gap:6px; margin:2px 0; }
+  #panel label span.k { flex:1; }
+  #panel label span.v { width:44px; text-align:right; color:#ffd257; font-variant-numeric:tabular-nums; }
+  #panel input[type=range] { width:210px; }
+  #panel button { background:#2c2c4a; color:#ddd; border:1px solid #444; border-radius:4px;
+                  padding:4px 10px; margin:2px 2px 2px 0; cursor:pointer; }
+  #panel button:hover { background:#3a3a60; }
+  /* 저장 버튼 설명 — 버튼 바로 아래 한 줄 */
+  #panel .act-btn { display:block; width:100%; text-align:left; margin:6px 0 0; }
+  .act-desc { color:#8a86a8; font-size:11px; line-height:1.5; margin:3px 0 0;
+              word-break:keep-all; }
+  .guide-hint { background:#232338; border-left:3px solid #7ee0ee; border-radius:0 4px 4px 0;
+                padding:8px 10px; margin-bottom:10px; }
+  /* 안내 페이지로 가는 길은 눈에 띄어야 한다 — 패널의 다른 버튼(#444 테두리)과 구분되도록
+     청록 테두리 버튼으로 세우고 패널 폭을 꽉 채운다 */
+  .guide-hint .guide-btn { display:block; text-align:center; text-decoration:none;
+                           background:#2c2c4a; color:#7ee0ee; font-weight:bold;
+                           border:1px solid #7ee0ee; border-radius:4px; padding:7px 10px; }
+  .guide-hint .guide-btn:hover { background:#38385e; }
+  .guide-hint div { color:#ffe8a8; font-size:11px; margin-top:6px; line-height:1.6; }
+  /* 슬라이더 그룹 접기 — 네이티브 <details>. 기본 삼각형 마커는 패널 톤과
+     맞지 않아 감추고 직접 그린다 */
+  .sl-group { border:1px solid #33334f; border-radius:4px;
+              background:#232338; margin:3px 0; }
+  .sl-group > summary {
+    list-style:none; cursor:pointer; padding:6px 8px; color:#ddd; user-select:none; }
+  .sl-group > summary::-webkit-details-marker { display:none; }
+  .sl-group > summary::before { content:'▸ '; color:#7ee0ee; }
+  .sl-group[open] > summary::before { content:'▾ '; }
+  .sl-group > summary:hover { background:#2c2c4a; }
+  .sl-hint { color:#9ab; font-size:11px; margin:8px 0 4px; }
+  .sl-count { color:#8a86a8; font-size:11px; margin-left:6px; }
+  .sl-group > div { padding:2px 8px 8px; }
+  .sl-groupdesc { color:#8a86a8; font-size:11px; line-height:1.5; margin:2px 0 6px;
+                  word-break:keep-all; }
+  /* 조작 설명 — 그룹 해제, 항상 펼쳐진 목록 */
+  .help-row { margin:3px 0; font-size:12px; color:#9ab; }
+  .help-row b { color:#7ee0ee; }
+  /* 캐릭터 카드 — 얼굴 정사각 크롭으로 카드 높이를 150px대에서 105px로 줄였다.
+     #panel button의 기본 padding·margin을 이기려면 선택자에 #panel이 필요하다 */
+  .char-row { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:6px; }
+  #panel .char-card { display:flex; flex-direction:column; align-items:center; gap:2px;
+                      background:#2c2c4a; color:#ddd; border:1px solid #444; border-radius:6px;
+                      padding:8px 4px; margin:0; cursor:pointer; font:inherit; }
+  #panel .char-card:hover { background:#3a3a60; }
+  #panel .char-card.on { background:#38385e; border-color:#7ee0ee; }
+  #panel .char-card img { display:block; border-radius:4px; }
+  .cc-name { color:#eef; margin-top:4px; }
+  .cc-stat { color:#ffd257; font-size:11px; font-variant-numeric:tabular-nums;
+             white-space:nowrap; }
+</style>
+</head>
+<body>
+  <div id="wrap">
+    <div id="game"><canvas id="canvas"></canvas></div>
+    <div id="panel"></div>
+  </div>
+  <script src="./shared/header.js" data-active="play" defer></script>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
